@@ -1,0 +1,20 @@
+[project]
+name = "seminario-dgx-spark"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "marimo>=0.18.4",
+    "numpy>=2.4.0",
+    "pyzmq>=27.1.0",
+    "torch>=2.9.1",
+]
+
+[[tool.uv.index]]
+name = "pytorch-cu130"
+url = "https://download.pytorch.org/whl/cu130"
+explicit = true
+
+[tool.uv.sources]
+torch = { index = "pytorch-cu130" }
