@@ -20,7 +20,7 @@ La GPU GB10 del DGX Spark tiene *compute capability* 12.1, que empieza a estar s
 
 ![CUDA stack](img/cuda_stack.jpg)
 
-PyTorch incluye el *runtime* de CUDA dentro de sus paquetes precompilados, y normalmente cada versión de PyTorch se publica en varias variantes para distintas versiones de CUDA: hay que elegir una variante con **CUDA ≥ 12.9** para que funcione en el Spark.
+PyTorch incluye el *runtime* de CUDA dentro de sus paquetes precompilados, y normalmente cada versión de PyTorch se publica en múltiples variantes para distintas versiones de CUDA: hay que elegir una variante con **CUDA ≥ 12.9** para que funcione en el Spark.
 
 Las aplicaciones PyTorch o CUDA se pueden ejecutar en máquina física o docker. En caso de optar por docker, todos los componentes de la pila CUDA pueden ir dockerizados sin problemas, excepto el driver de Nvidia, que **debe estar instalado en el anfitrión**.
 
@@ -81,13 +81,17 @@ Si no tenemos `pyproject.toml`, podemos instalar torch en un entorno virtual con
 uv pip install torch torchvision --index-url https://download.pytorch.org/whl/cu130
 ```
 
-Para comprobar si PyTorch está instalado correctamente con el notebook de Marimo [000_test_torch.py](000_test_torch.py).
+Para comprobar si PyTorch está instalado correctamente con el notebook de Marimo [000_test_torch.py](000_test_torch.py):
+
+```sh
+uv run marimo edit 000_test_torch.py --host 192.168.4.127
+```
 
 ### ComfyUI
 
 ```sh
 cd ~/git
-git clone git@github.com:comfyanonymous/ComfyUI.git
+git clone https://github.com/Comfy-Org/ComfyUI.git
 cd ComfyUI
 ```
 
@@ -104,7 +108,7 @@ uv pip install -r requirements.txt
 ComfyUI tiene un gestor de *custom nodes* que permite descargarlos automáticamente cuando faltan sin tener que hacerlo desde el terminal:
 
 ```sh
-git clone https://github.com/ltdrdata/ComfyUI-Manager comfyui-manager
+git clone https://github.com/ltdrdata/ComfyUI-Manager custom_nodes/comfyui-manager
 ```
 
 Ejecutamos ComfyUI:
@@ -121,6 +125,13 @@ Para acceder a ComfyUI desde el navegador apuntamos a http://192.168.4.127:8188/
 
 Usaremos como base el workflow de este [tutorial](https://www.nextdiffusion.ai/tutorials/consistent-outfit-changes-with-multi-qwen-image-edit-2511-in-comfyui).
 
+En el directorio [demo/comfy](demo/comfy) tenemos dos imágenes de ejemplo que llevan el workflow embebido en el propio PNG.
+
+Para reproducirlos, arrastramos el PNG a ComfyUI:
+
+- [qwen_edit_2511_kia.png](img/qwen_edit_2511_kia.png)
+- [qwen_edit_2511_vestido.png](img/qwen_edit_2511_vestido.png)
+
 El cargar el workflow nos encontaremos con la advertencia de que faltan nodos.
 
 ![Faltan nodos](img/comfy_faltan_nodos.png)
@@ -128,6 +139,10 @@ El cargar el workflow nos encontaremos con la advertencia de que faltan nodos.
 Para instalar los nodos faltantes, vamos al manager y le damos al botón de instalar los nodos que faltan.
 
 ![Instalar nodos](img/comfy_manager.png)
+
+Tras instalar los nodos faltantes, deberemos reiniciar:
+
+![Reiniciar](img/comfy_nodos_instalados.png)
 
 También nos avisará de que faltan modelos.
 
@@ -150,12 +165,40 @@ wget -P models/loras https://huggingface.co/lightx2v/Qwen-Image-Edit-2511-Lightn
 
 Para editar una imagen la subimos al nodo correspondiente. Podemos incluir hasta 2 imágenes más de referencia. En el prompt positivo escribimos el prompt de edición. En el negativo (opcional) podemos escribir aspectos a evitar (malformaciones, mala calidad, etc.).
 
-Tarda ~6m la primera generación a 1.0Mpx de área, ~2m las sucesivas.
+Tarda ~5-6m la primera generación a 1.0Mpx de área, ~2m las sucesivas.
 
 Como ejercicio:
 
 - Probar a desconectar con CTRL-B el lora de 4 steps. Habrá que subir el CFG. Mejorará la calidad ligeramente a costa de aumentar el tiempo de generación.
 - Probar [Qwen Image 2512](https://qwen.ai/blog?id=qwen-image-2512), actualmente el modelo open-source más avanzado de generación de imagen según [AI Arena](https://aiarena.alibaba-inc.com/corpora/arena/leaderboard?spm=a2ty_o06.30285417.0.0.6740c921UrbI1O&arenaType=T2I).
+
+### Flux.2 Klein 9B
+
+Los modelos FLUX.2 están disponibles en Hugging Face pero es necesario aceptar los términos de uso desde sus respectivos repositorios, para lo cual necesitaremos una cuenta en Hugging Face y autenticarnos con:
+
+```sh
+uv tool install huggingface-hub
+hf auth login
+```
+
+Para posteriormente descargar los modelos:
+
+```sh
+hf download black-forest-labs/FLUX.2-klein-9b-fp8 flux-2-klein-9b-fp8.safetensors --repo-type model --local-dir models/diffusion_models
+hf download black-forest-labs/FLUX.2-klein-9b-nvfp4 flux-2-klein-9b-nvfp4.safetensors --repo-type model --local-dir models/diffusion_models
+wget -P models/text_encoders https://huggingface.co/Comfy-Org/flux2-klein-9B/resolve/main/split_files/text_encoders/qwen_3_8b_fp8mixed.safetensors
+wget -P models/vae https://huggingface.co/Comfy-Org/flux2-dev/resolve/main/split_files/vae/flux2-vae.safetensors
+```
+
+Podemos probar el workflow con estos 2 ejemplos:
+
+- [flux_2_klein_9b_fp8.png](img/flux_2_klein_9b_fp8.png)
+- [flux_2_klein_9b_nvfp4.png](img/flux_2_klein_9b_nvfp4.png)
+
+FLUX.2 Klein 9B es MUCHO más rápido que Qwen Edit 2511:
+
+- ~150s la primera ejecución (por la carga de modelos)
+- ~20s las sucesivas
 
 ### Z-Image
 
@@ -170,6 +213,12 @@ wget -P models/text_encoders https://huggingface.co/Comfy-Org/z_image_turbo/reso
 wget -P models/vae https://huggingface.co/Comfy-Org/z_image_turbo/resolve/main/split_files/vae/ae.safetensors
 wget -P models/diffusion_models https://huggingface.co/Comfy-Org/z_image_turbo/resolve/main/split_files/diffusion_models/z_image_turbo_bf16.safetensors
 ```
+
+Worflow the ejemplo:
+
+- [z_image_turbo.png](img/zimage_split_woman.png)
+
+Este modelo también es muy rápido: tarda ~70s la primera ejecución, ~15s las sucesivas.
 
 ### Wan 2.2 Animate
 
@@ -193,6 +242,8 @@ Desde el manager, instalar los nodos que faltan:
 - La mayoría de nodos están en el canal `default`.
 - Los que falten hay que descargarlos del canal `dev`.
 
+![Canal dev](img/comfy_canal_dev.png)
+
 En este workflow:
 
 - Elegimos la resolución de salida
@@ -203,8 +254,6 @@ En este workflow:
 
 Tarda 12m aprox para vídeo de 4s, 8m en generaciones sucesivas (para el mismo vídeo).
 
-Sugerencias:
-
 ## MiniMax-M2.1
 
 [Hay quien dice](https://x.com/akshay_pachaar/status/2003808497339924706) que este modelo es "Claude pero al 10% de su precio". Probémoslo.
@@ -212,7 +261,7 @@ Sugerencias:
 Descargamos el modelo:
 
 ```sh
-uv tool install huggingface-cli
+uv tool install huggingface-hub
 mkdir ~/models
 cd ~/models
 hf download AaryanK/MiniMax-M2.1-GGUF MiniMax-M2.1.q2_k.gguf --local-dir ./minimax-m21-gguf
@@ -237,7 +286,7 @@ Para ejecutar y hablar con el modelo desde el terminal:
 
 En http://192.168.4.127:8080/ se nos abrirá un interfaz web para hablar con el modelo, tipo ChatGPT.
 
-También podemos integrarlo en algún IDE. En Cursor es difícil porque las llamadas a las API de los modelos las hacen desde su backend y habría que poner el servicio en una IP pública. Pero podemos usar Zed, que sí soporta llamadas en red local a APIs tipo OpenAI como la que ofrece llama.cpp.
+También podemos integrarlo en algún IDE. En Cursor es difícil porque las llamadas a las API de los modelos las hacen desde su backend y habría que poner el servicio en una IP pública. Pero podemos usar Opencode o Zed, que sí soportan llamadas en red local a APIs tipo OpenAI como la que ofrece llama.cpp.
 
 Con `-c` podemos indicar la longitud del contexto máxima en tokens. MiniMax-M2.1 fue entrenado con ~190K tokens.
 
@@ -353,6 +402,38 @@ Vamos a entrenar un LoRA basado en Z-Image turbo ([tutorial](https://www.youtube
 ### F5-Spanish
 
 [![F5-Spanish](img/dotcsv_f5.png)](https://www.youtube.com/shorts/0Xjd9KfmkA0)
+
+### Deepseek OCR-2
+
+[![Deepseek OCR-2](img/deepseek-ocr-2.jpeg)](https://github.com/deepseek-ai/DeepSeek-OCR-2)
+
+### Moss video and audio
+
+[![Moss video and audio](img/moss.png)](https://mosi.cn/models/mova)
+
+### Qwen3-ASR
+
+[![Qwen3-ASR](img/qwen3-asr.jpeg)](https://github.com/QwenLM/Qwen3-ASR)
+
+### Qwen3-TTS
+
+[![Qwen3-TTS](img/qwen3-tts.png)](https://github.com/filliptm/ComfyUI-FL-Qwen3TTS)
+
+### GLM 4.7 Flash
+
+[![GLM 4.7 Flash](img/glm-4.7-flash.jpeg)](https://huggingface.co/zai-org/GLM-4.7-Flash)
+
+### Home Assistant + Ollama
+
+Docs de homeassitant: https://www.home-assistant.io/integrations/ollama/
+
+### ACE-step 1.5
+
+[![ACE-step 1.5](img/ace_step_1.5.png)](https://github.com/ace-step/ACE-Step-1.5)
+
+### LTX-2
+
+[![LTX-2](img/ltx2.png)](https://ltx.io/model/ltx-2)
 
 ## Proyectos de la comunidad
 
