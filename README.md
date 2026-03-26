@@ -452,3 +452,5 @@ Fundamentos previos:
 - [Desarrollo con la IA, día 1](https://www.youtube.com/watch?v=uRzoVP63RiI)
 - [Desarrollo con la IA, día 2](https://www.youtube.com/watch?v=V-eiE0M-mWM)
 - [Desarrollo con la IA, día 3](https://www.youtube.com/watch?v=0DhghJpWwVQ)
+
+Backend de FLUX.2 klein 4b en FastAPI implementado durante la demo: https://github.com/jamarju/flux2-api-v3/
