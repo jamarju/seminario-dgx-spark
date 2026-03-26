@@ -1,3 +1,5 @@
+# Sesión 1
+
 ## Introducción
 
 Comparativo con otros sistemas:
@@ -442,3 +444,11 @@ Docs de homeassitant: https://www.home-assistant.io/integrations/ollama/
 ## Fuentes de información
 
 - https://x.com/i/lists/2007522060344361209
+
+# Sesión 2
+
+Fundamentos previos:
+
+- [Desarrollo con la IA, día 1](https://www.youtube.com/watch?v=uRzoVP63RiI)
+- [Desarrollo con la IA, día 2](https://www.youtube.com/watch?v=V-eiE0M-mWM)
+- [Desarrollo con la IA, día 3](https://www.youtube.com/watch?v=0DhghJpWwVQ)
